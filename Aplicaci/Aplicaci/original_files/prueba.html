@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Carpintería Los Roble - Gestión de Producción</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color:#f5f5f5; color:#333; }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+        header { background-color:#2c3e50; color:white; padding:15px 0; text-align:center; margin-bottom:30px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+        header h1 { font-size:24px; margin:0; }
+
+        .login-section { display:flex; justify-content:center; align-items:center; min-height:100vh;
+            background: url('https://www.transparenttextures.com/patterns/dark-wood.png'),
+                        linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5));
+            background-size:cover; background-blend-mode:overlay; filter: blur(0px);
+        }
+        .login-form { position:relative; background: linear-gradient(145deg,#2c3e50,#1a252f); padding:40px 35px; border-radius:20px; box-shadow:0 8px 25px rgba(0,0,0,0.4); width:100%; max-width:400px; backdrop-filter:blur(8px); color:#ecf0f1; animation:fadeIn .8s ease; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+        .login-logo { display:block; margin:0 auto 15px; width:90px; height:auto; }
+        .login-form h2 { text-align:center; margin-bottom:25px; color:#ecf0f1; letter-spacing:1px; }
+        .input-group { position:relative; margin-bottom:20px; }
+        .input-group input { width:100%; padding:12px 40px 12px 40px; border:1px solid #444; border-radius:10px; font-size:16px; background-color:#2c3e50; color:white; outline:none; transition:all .3s; }
+        .input-group input:focus { border-color:#2ecc71; box-shadow:0 0 8px #2ecc71; }
+        .input-group i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#aaa; font-size:18px; }
+        .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#aaa; }
+        .btn-login { background: linear-gradient(45deg,#27ae60,#2ecc71); color:white; border:none; padding:12px 20px; border-radius:12px; font-size:16px; width:100%; cursor:pointer; transition:all .3s ease; }
+        .btn-login:hover { box-shadow:0 0 15px rgba(46,204,113,.8); transform:scale(1.02); }
+
+        .form-group { margin-bottom:20px; }
+        .form-group label { display:block; margin-bottom:5px; font-weight:bold; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius:5px; font-size:16px; }
+
+        .btn { background-color:#3498db; color:white; border:none; padding:12px 20px; border-radius:5px; cursor:pointer; font-size:16px; width:100%; transition:background-color .3s; }
+        .btn:hover { background-color:#2980b9; }
+
+        .app-container { display:none; }
+
+        nav { background-color:#2c3e50; padding:15px 0; margin-bottom:30px; }
+        nav ul { list-style:none; display:flex; justify-content:center; gap:20px; }
+        nav a { color:white; text-decoration:none; padding:10px 20px; border-radius:5px; }
+        nav a:hover, nav a.active { background-color:#34495e; }
+
+        .content-section { display:none; background:white; padding:25px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:20px; }
+        .content-section.active { display:block; }
+        .section-title { color:#2c3e50; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #ecf0f1; }
+
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; margin-bottom:20px; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th, td { padding:12px; text-align:left; border-bottom:1px solid #ddd; vertical-align:middle; }
+        th { background-color:#f8f9fa; font-weight:bold; }
+        tr:hover { background-color:#f5f5f5; }
+
+        .table-btn { background-color:#3498db; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:14px; margin-right:6px; }
+        .table-btn.delete { background-color:#e74c3c; }
+        .toolbar { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+
+        .reports-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+        .report-card { background:white; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        .backup-section { text-align:center; }
+        .backup-buttons { display:flex; justify-content:center; gap:20px; margin-top:20px; }
+
+        .notification { position:fixed; top:20px; right:20px; padding:15px 20px; border-radius:5px; color:white; z-index:1000; opacity:0; transform:translateX(100%); transition:all .3s ease; }
+        .notification.success { background-color:#27ae60; }
+        .notification.error { background-color:#e74c3c; }
+        .notification.show { opacity:1; transform:translateX(0); }
+
+        /* Small responsiveness */
+        @media (max-width:600px) {
+            .toolbar { flex-direction:column; }
+            .table-btn { margin-bottom:6px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==== LOGIN SECTION ==== -->
+    <div class="login-section" id="loginSection">
+        <div class="login-form">
+            <img src="./logo/logo.png" alt="Logo Carpintería Los Roble" class="login-logo">
+            <h2>Iniciar Sesión</h2>
+
+            <div class="input-group">
+                <i>👤</i>
+                <input type="text" id="username" placeholder="Usuario">
+            </div>
+
+            <div class="input-group">
+                <i>🔒</i>
+                <input type="password" id="password" placeholder="Contraseña">
+                <span class="toggle-password" onclick="togglePassword()">👁️</span>
+            </div>
+
+            <button class="btn-login" onclick="login()">Acceder</button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container" id="appContainer">
+        <header>
+            <h1>Carpintería Los Roble - Gestión de Producción</h1>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#" class="active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#" data-section="orders">Pedidos</a></li>
+                <li><a href="#" data-section="clients">Clientes</a></li>
+                <li><a href="#" data-section="materials">Materiales</a></li>
+                <li><a href="#" data-section="employees">Empleados</a></li>
+                <li><a href="#" data-section="deliveries">Entregas</a></li>
+                <li><a href="#" data-section="reports">Reportes</a></li>
+                <li><a href="#" data-section="backup">Backup/Restore</a></li>
+            </ul>
+        </nav>
+
+        <div class="container">
+            <!-- Dashboard -->
+            <div class="content-section active" id="dashboard">
+                <h2 class="section-title">Panel de Control</h2>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Pedidos Pendientes</h3>
+                        <p>Total: <span id="pendingOrders">0</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>Clientes Registrados</h3>
+                        <p>Total: <span id="totalClients">0</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>Materiales en Stock</h3>
+                        <p>Total: <span id="stockMaterials">0</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>Empleados Activos</h3>
+                        <p>Total: <span id="activeEmployees">0</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>Entregas Programadas</h3>
+                        <p>Total: <span id="scheduledDeliveries">0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="content-section" id="orders">
+                <h2 class="section-title">Gestión de Pedidos</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="orderClient">Cliente:</label>
+                        <select id="orderClient"><option value="">Seleccione un cliente</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderDate">Fecha:</label>
+                        <input type="date" id="orderDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="orderStatus">Estado:</label>
+                        <select id="orderStatus">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en_proceso">En Proceso</option>
+                            <option value="completado">Completado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderDescription">Descripción:</label>
+                        <textarea id="orderDescription" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:10px;">
+                    <button class="btn" onclick="addOrder()">Agregar Pedido</button>
+                    <!-- Global export/report buttons -->
+                    <div class="toolbar" style="margin-left:auto;">
+                        <button class="table-btn" onclick="generateAllOrdersPDF()">PDF de todos los pedidos</button>
+                        <button class="table-btn" onclick="generateClientsPDF()">PDF de clientes</button>
+                        <button class="table-btn" onclick="exportAllToExcel()">Exportar a Excel</button>
+                        <button class="table-btn" onclick="downloadDeliveries()">Descargar entregas</button>
+                    </div>
+                </div>
+
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- orders populated --></tbody>
+                </table>
+            </div>
+
+            <!-- Clients -->
+            <div class="content-section" id="clients">
+                <h2 class="section-title">Gestión de Clientes</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label for="clientName">Nombre:</label><input type="text" id="clientName"></div>
+                    <div class="form-group"><label for="clientEmail">Correo:</label><input type="email" id="clientEmail"></div>
+                    <div class="form-group"><label for="clientPhone">Teléfono:</label><input type="tel" id="clientPhone"></div>
+                    <div class="form-group"><label for="clientAddress">Dirección:</label><input type="text" id="clientAddress"></div>
+                </div>
+                <button class="btn" onclick="addClient()">Agregar Cliente</button>
+
+                <table id="clientsTable">
+                    <thead>
+                        <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th></tr>
+                    </thead>
+                    <tbody><!-- clients populated --></tbody>
+                </table>
+            </div>
+
+            <!-- Materials -->
+            <div class="content-section" id="materials">
+                <h2 class="section-title">Gestión de Materiales</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label for="materialName">Nombre del Material:</label><input type="text" id="materialName"></div>
+                    <div class="form-group"><label for="materialType">Tipo:</label>
+                        <select id="materialType"><option value="madera">Madera</option><option value="metal">Metal</option><option value="vidrio">Vidrio</option><option value="otro">Otro</option></select>
+                    </div>
+                    <div class="form-group"><label for="materialQuantity">Cantidad:</label><input type="number" id="materialQuantity" min="1"></div>
+                    <div class="form-group"><label for="materialUnit">Unidad:</label>
+                        <select id="materialUnit"><option value="unidades">Unidades</option><option value="metros">Metros</option><option value="kilogramos">Kilogramos</option></select>
+                    </div>
+                </div>
+                <button class="btn" onclick="addMaterial()">Agregar Material</button>
+
+                <table id="materialsTable">
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Cantidad</th><th>Unidad</th><th>Acciones</th></tr></thead>
+                    <tbody><!-- materials populated --></tbody>
+                </table>
+            </div>
+
+            <!-- Employees -->
+            <div class="content-section" id="employees">
+                <h2 class="section-title">Gestión de Empleados</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label for="employeeName">Nombre:</label><input type="text" id="employeeName"></div>
+                    <div class="form-group"><label for="employeeRole">Rol:</label>
+                        <select id="employeeRole"><option value="carpintero">Carpintero</option><option value="ayudante">Ayudante</option><option value="administrativo">Administrativo</option><option value="gerente">Gerente</option></select>
+                    </div>
+                    <div class="form-group"><label for="employeeSalary">Salario:</label><input type="number" id="employeeSalary" min="0" step="0.01"></div>
+                    <div class="form-group"><label for="employeeStartDate">Fecha de Inicio:</label><input type="date" id="employeeStartDate"></div>
+                </div>
+                <button class="btn" onclick="addEmployee()">Agregar Empleado</button>
+
+                <table id="employeesTable">
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Salario</th><th>Fecha Inicio</th><th>Acciones</th></tr></thead>
+                    <tbody><!-- employees populated --></tbody>
+                </table>
+            </div>
+
+            <!-- Deliveries -->
+            <div class="content-section" id="deliveries">
+                <h2 class="section-title">Gestión de Entregas</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label for="deliveryOrder">Pedido:</label>
+                        <select id="deliveryOrder"><option value="">Seleccione un pedido</option></select>
+                    </div>
+                    <div class="form-group"><label for="deliveryDate">Fecha de Entrega:</label><input type="date" id="deliveryDate"></div>
+                    <div class="form-group"><label for="deliveryAddress">Dirección de Entrega:</label><input type="text" id="deliveryAddress"></div>
+                    <div class="form-group"><label for="deliveryStatus">Estado:</label>
+                        <select id="deliveryStatus"><option value="programada">Programada</option><option value="en_transito">En Tránsito</option><option value="entregada">Entregada</option><option value="cancelada">Cancelada</option></select>
+                    </div>
+                </div>
+                <button class="btn" onclick="addDelivery()">Programar Entrega</button>
+
+                <table id="deliveriesTable">
+                    <thead><tr><th>ID</th><th>Pedido</th><th>Fecha Entrega</th><th>Dirección</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody><!-- deliveries populated --></tbody>
+                </table>
+            </div>
+
+            <!-- Reports -->
+            <div class="content-section" id="reports">
+                <h2 class="section-title">Reportes</h2>
+                <div class="reports-grid">
+                    <div class="report-card"><h3>Reporte de Ventas por Mes</h3><div id="salesByMonth"></div><button class="btn" onclick="generateSalesReport()">Generar Reporte</button></div>
+                    <div class="report-card"><h3>Reporte de Materiales Más Usados</h3><div id="topMaterials"></div><button class="btn" onclick="generateMaterialsReport()">Generar Reporte</button></div>
+                    <div class="report-card"><h3>Reporte de Productividad de Empleados</h3><div id="employeeProductivity"></div><button class="btn" onclick="generateEmployeeReport()">Generar Reporte</button></div>
+                    <div class="report-card"><h3>Reporte de Clientes Frecuentes</h3><div id="frequentClients"></div><button class="btn" onclick="generateClientsReport()">Generar Reporte</button></div>
+                    <div class="report-card"><h3>Reporte de Entregas Pendientes</h3><div id="pendingDeliveries"></div><button class="btn" onclick="generateDeliveriesReport()">Generar Reporte</button></div>
+                </div>
+            </div>
+
+            <!-- Backup/Restore -->
+            <div class="content-section" id="backup">
+                <h2 class="section-title">Backup y Restauración de Base de Datos</h2>
+                <div class="backup-section">
+                    <p>Haga clic en los botones siguientes para realizar operaciones de backup y restore.</p>
+                    <div class="backup-buttons">
+                        <button class="btn" onclick="performBackup()">Realizar Backup</button>
+                        <button class="btn" onclick="performRestore()">Restaurar desde Backup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Data storage simulation
+        let data = {
+            orders: [],
+            clients: [],
+            materials: [],
+            employees: [],
+            deliveries: []
+        };
+
+        let currentUserId = null;
+
+        // Toggle password (simple)
+        function togglePassword() {
+            const p = document.getElementById('password');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+
+        // User authentication
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'admin' && password === 'admin123') {
+                currentUserId = { id: 1, role: 'admin', name: 'Administrador' };
+                showNotification('Bienvenido Administrador!', 'success');
+                switchToApp();
+            } else if (username === 'user' && password === 'user123') {
+                currentUserId = { id: 2, role: 'user', name: 'Empleado' };
+                showNotification('Bienvenido Empleado!', 'success');
+                switchToApp();
+            } else {
+                showNotification('Credenciales incorrectas', 'error');
+            }
+        }
+
+        function switchToApp() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            loadInitialData();
+        }
+
+        // Navigation
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
+                showSection(sectionId);
+                document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // Load initial sample data
+        function loadInitialData() {
+            data.clients = [
+                { id: 1, name: 'Juan Pérez', email: 'juan@example.com', phone: '555-1234', address: 'Calle Falsa 123' },
+                { id: 2, name: 'María García', email: 'maria@example.com', phone: '555-5678', address: 'Avenida Siempreviva 456' }
+            ];
+
+            data.orders = [
+                { id: 1, clientId: 1, date: '2023-05-15', status: 'pendiente', description: 'Mesa de comedor' },
+                { id: 2, clientId: 2, date: '2023-05-18', status: 'en_proceso', description: 'Armario empotrable' }
+            ];
+
+            data.materials = [
+                { id: 1, name: 'Roble', type: 'madera', quantity: 150, unit: 'unidades' },
+                { id: 2, name: 'Tornillos', type: 'metal', quantity: 500, unit: 'unidades' }
+            ];
+
+            data.employees = [
+                { id: 1, name: 'Carlos López', role: 'carpintero', salary: 1800, startDate: '2020-03-15' },
+                { id: 2, name: 'Ana Martínez', role: 'ayudante', salary: 1200, startDate: '2021-06-22' }
+            ];
+
+            data.deliveries = [
+                { id: 1, orderId: 1, deliveryDate: '2023-05-25', address: 'Calle Falsa 123', status: 'programada' }
+            ];
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Dashboard counters
+            document.getElementById('pendingOrders').textContent = data.orders.filter(o => o.status === 'pendiente').length;
+            document.getElementById('totalClients').textContent = data.clients.length;
+            document.getElementById('stockMaterials').textContent = data.materials.reduce((sum,m) => sum + (m.quantity||0), 0);
+            document.getElementById('activeEmployees').textContent = data.employees.length;
+            document.getElementById('scheduledDeliveries').textContent = data.deliveries.filter(d => d.status === 'programada').length;
+
+            // Update selects
+            const orderClientSelect = document.getElementById('orderClient');
+            orderClientSelect.innerHTML = '<option value="">Seleccione un cliente</option>';
+            data.clients.forEach(client => orderClientSelect.innerHTML += `<option value="${client.id}">${client.name}</option>`);
+
+            const deliveryOrderSelect = document.getElementById('deliveryOrder');
+            deliveryOrderSelect.innerHTML = '<option value="">Seleccione un pedido</option>';
+            data.orders.forEach(order => deliveryOrderSelect.innerHTML += `<option value="${order.id}">${order.description}</option>`);
+
+            // Update tables
+            updateOrdersTable();
+            updateClientsTable();
+            updateMaterialsTable();
+            updateEmployeesTable();
+            updateDeliveriesTable();
+        }
+
+        // Orders
+        function addOrder() {
+            const clientId = parseInt(document.getElementById('orderClient').value);
+            const date = document.getElementById('orderDate').value;
+            const status = document.getElementById('orderStatus').value;
+            const description = document.getElementById('orderDescription').value;
+
+            if (!clientId || !date || !status || !description) {
+                showNotification('Por favor complete todos los campos', 'error'); return;
+            }
+
+            const newOrder = { id: (data.orders.length?Math.max(...data.orders.map(o=>o.id))+1:1), clientId, date, status, description };
+            data.orders.push(newOrder);
+            updateDisplay();
+            clearForm('orders');
+            showNotification('Pedido agregado exitosamente', 'success');
+        }
+
+        function updateOrdersTable() {
+            const tbody = document.querySelector('#ordersTable tbody');
+            tbody.innerHTML = '';
+            data.orders.forEach(order => {
+                const client = data.clients.find(c => c.id === order.clientId);
+                const row = `
+                    <tr>
+                        <td>${order.id}</td>
+                        <td>${client ? client.name : 'Desconocido'}</td>
+                        <td>${order.date}</td>
+                        <td>${order.status}</td>
+                        <td>${order.description}</td>
+                        <td>
+                            <button class="table-btn" onclick="editOrder(${order.id})">Editar</button>
+                            <button class="table-btn delete" onclick="deleteOrder(${order.id})">Eliminar</button>
+                            <button class="table-btn" onclick="downloadOrder(${order.id})">Descargar</button>
+                            <button class="table-btn" onclick="generateOrderPDF(${order.id})">PDF</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editOrder(id) {
+            const order = data.orders.find(o => o.id === id);
+            if (!order) return;
+            document.getElementById('orderClient').value = order.clientId;
+            document.getElementById('orderDate').value = order.date;
+            document.getElementById('orderStatus').value = order.status;
+            document.getElementById('orderDescription').value = order.description;
+            showNotification(`Editando pedido ${id}`, 'success');
+        }
+
+        function deleteOrder(id) {
+            if (!confirm('¿Está seguro de eliminar este pedido?')) return;
+            data.orders = data.orders.filter(o => o.id !== id);
+            updateDisplay();
+            showNotification('Pedido eliminado', 'success');
+        }
+
+        // Clients
+        function addClient() {
+            const name = document.getElementById('clientName').value;
+            const email = document.getElementById('clientEmail').value;
+            const phone = document.getElementById('clientPhone').value;
+            const address = document.getElementById('clientAddress').value;
+
+            if (!name || !email || !phone || !address) { showNotification('Por favor complete todos los campos', 'error'); return; }
+
+            const newClient = { id: (data.clients.length?Math.max(...data.clients.map(c=>c.id))+1:1), name, email, phone, address };
+            data.clients.push(newClient);
+            updateDisplay();
+            clearForm('clients');
+            showNotification('Cliente agregado exitosamente', 'success');
+        }
+
+        function updateClientsTable() {
+            const tbody = document.querySelector('#clientsTable tbody');
+            tbody.innerHTML = '';
+            data.clients.forEach(client => {
+                const row = `
+                    <tr>
+                        <td>${client.id}</td>
+                        <td>${client.name}</td>
+                        <td>${client.email}</td>
+                        <td>${client.phone}</td>
+                        <td>${client.address}</td>
+                        <td>
+                            <button class="table-btn" onclick="editClient(${client.id})">Editar</button>
+                            <button class="table-btn delete" onclick="deleteClient(${client.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editClient(id) {
+            const client = data.clients.find(c => c.id === id);
+            if (!client) return;
+            document.getElementById('clientName').value = client.name;
+            document.getElementById('clientEmail').value = client.email;
+            document.getElementById('clientPhone').value = client.phone;
+            document.getElementById('clientAddress').value = client.address;
+            showNotification(`Editando cliente ${id}`, 'success');
+        }
+
+        function deleteClient(id) {
+            if (!confirm('¿Está seguro de eliminar este cliente?')) return;
+            data.clients = data.clients.filter(c => c.id !== id);
+            updateDisplay();
+            showNotification('Cliente eliminado', 'success');
+        }
+
+        // Materials
+        function addMaterial() {
+            const name = document.getElementById('materialName').value;
+            const type = document.getElementById('materialType').value;
+            const quantity = parseInt(document.getElementById('materialQuantity').value);
+            const unit = document.getElementById('materialUnit').value;
+            if (!name || !quantity || !unit) { showNotification('Por favor complete todos los campos', 'error'); return; }
+            const newMaterial = { id: (data.materials.length?Math.max(...data.materials.map(m=>m.id))+1:1), name, type, quantity, unit };
+            data.materials.push(newMaterial);
+            updateDisplay();
+            clearForm('materials');
+            showNotification('Material agregado exitosamente', 'success');
+        }
+
+        function updateMaterialsTable() {
+            const tbody = document.querySelector('#materialsTable tbody');
+            tbody.innerHTML = '';
+            data.materials.forEach(material => {
+                const row = `
+                    <tr>
+                        <td>${material.id}</td>
+                        <td>${material.name}</td>
+                        <td>${material.type}</td>
+                        <td>${material.quantity}</td>
+                        <td>${material.unit}</td>
+                        <td>
+                            <button class="table-btn" onclick="editMaterial(${material.id})">Editar</button>
+                            <button class="table-btn delete" onclick="deleteMaterial(${material.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editMaterial(id) {
+            const material = data.materials.find(m => m.id === id);
+            if (!material) return;
+            document.getElementById('materialName').value = material.name;
+            document.getElementById('materialType').value = material.type;
+            document.getElementById('materialQuantity').value = material.quantity;
+            document.getElementById('materialUnit').value = material.unit;
+            showNotification(`Editando material ${id}`, 'success');
+        }
+
+        function deleteMaterial(id) {
+            if (!confirm('¿Está seguro de eliminar este material?')) return;
+            data.materials = data.materials.filter(m => m.id !== id);
+            updateDisplay();
+            showNotification('Material eliminado', 'success');
+        }
+
+        // Employees
+        function addEmployee() {
+            const name = document.getElementById('employeeName').value;
+            const role = document.getElementById('employeeRole').value;
+            const salary = parseFloat(document.getElementById('employeeSalary').value);
+            const startDate = document.getElementById('employeeStartDate').value;
+            if (!name || !salary || !startDate) { showNotification('Por favor complete todos los campos', 'error'); return; }
+            const newEmployee = { id: (data.employees.length?Math.max(...data.employees.map(e=>e.id))+1:1), name, role, salary, startDate };
+            data.employees.push(newEmployee);
+            updateDisplay();
+            clearForm('employees');
+            showNotification('Empleado agregado exitosamente', 'success');
+        }
+
+        function updateEmployeesTable() {
+            const tbody = document.querySelector('#employeesTable tbody');
+            tbody.innerHTML = '';
+            data.employees.forEach(employee => {
+                const row = `
+                    <tr>
+                        <td>${employee.id}</td>
+                        <td>${employee.name}</td>
+                        <td>${employee.role}</td>
+                        <td>$${employee.salary.toFixed(2)}</td>
+                        <td>${employee.startDate}</td>
+                        <td>
+                            <button class="table-btn" onclick="editEmployee(${employee.id})">Editar</button>
+                            <button class="table-btn delete" onclick="deleteEmployee(${employee.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editEmployee(id) {
+            const employee = data.employees.find(e => e.id === id);
+            if (!employee) return;
+            document.getElementById('employeeName').value = employee.name;
+            document.getElementById('employeeRole').value = employee.role;
+            document.getElementById('employeeSalary').value = employee.salary;
+            document.getElementById('employeeStartDate').value = employee.startDate;
+            showNotification(`Editando empleado ${id}`, 'success');
+        }
+
+        function deleteEmployee(id) {
+            if (!confirm('¿Está seguro de eliminar este empleado?')) return;
+            data.employees = data.employees.filter(e => e.id !== id);
+            updateDisplay();
+            showNotification('Empleado eliminado', 'success');
+        }
+
+        // Deliveries
+        function addDelivery() {
+            const orderId = parseInt(document.getElementById('deliveryOrder').value);
+            const deliveryDate = document.getElementById('deliveryDate').value;
+            const address = document.getElementById('deliveryAddress').value;
+            const status = document.getElementById('deliveryStatus').value;
+            if (!orderId || !deliveryDate || !address) { showNotification('Por favor complete todos los campos', 'error'); return; }
+            const newDelivery = { id: (data.deliveries.length?Math.max(...data.deliveries.map(d=>d.id))+1:1), orderId, deliveryDate, address, status };
+            data.deliveries.push(newDelivery);
+            updateDisplay();
+            clearForm('deliveries');
+            showNotification('Entrega programada exitosamente', 'success');
+        }
+
+        function updateDeliveriesTable() {
+            const tbody = document.querySelector('#deliveriesTable tbody');
+            tbody.innerHTML = '';
+            data.deliveries.forEach(delivery => {
+                const order = data.orders.find(o => o.id === delivery.orderId);
+                const row = `
+                    <tr>
+                        <td>${delivery.id}</td>
+                        <td>${order ? order.description : 'Desconocido'}</td>
+                        <td>${delivery.deliveryDate}</td>
+                        <td>${delivery.address}</td>
+                        <td>${delivery.status}</td>
+                        <td>
+                            <button class="table-btn" onclick="editDelivery(${delivery.id})">Editar</button>
+                            <button class="table-btn delete" onclick="deleteDelivery(${delivery.id})">Cancelar</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editDelivery(id) {
+            const delivery = data.deliveries.find(d => d.id === id);
+            if (!delivery) return;
+            document.getElementById('deliveryOrder').value = delivery.orderId;
+            document.getElementById('deliveryDate').value = delivery.deliveryDate;
+            document.getElementById('deliveryAddress').value = delivery.address;
+            document.getElementById('deliveryStatus').value = delivery.status;
+            showNotification(`Editando entrega ${id}`, 'success');
+        }
+
+        function deleteDelivery(id) {
+            if (!confirm('¿Está seguro de cancelar esta entrega?')) return;
+            data.deliveries = data.deliveries.filter(d => d.id !== id);
+            updateDisplay();
+            showNotification('Entrega cancelada', 'success');
+        }
+
+        // Report generation (simple)
+        function generateSalesReport() {
+            const salesByMonth = {};
+            data.orders.forEach(order => {
+                const month = order.date.substring(0,7);
+                salesByMonth[month] = (salesByMonth[month]||0) + 1;
+            });
+            const container = document.getElementById('salesByMonth');
+            container.innerHTML = '<h4>Ventas por Mes:</h4>';
+            Object.entries(salesByMonth).sort().forEach(([m,c]) => container.innerHTML += `<p>${m}: ${c} pedidos</p>`);
+            showNotification('Reporte de ventas generado', 'success');
+        }
+
+        function generateMaterialsReport() {
+            const top = [...data.materials].sort((a,b)=>b.quantity-a.quantity).slice(0,5);
+            const container = document.getElementById('topMaterials');
+            container.innerHTML = '<h4>Materiales más usados:</h4>';
+            top.forEach(m=> container.innerHTML += `<p>${m.name}: ${m.quantity} ${m.unit}</p>`);
+            showNotification('Reporte de materiales generado', 'success');
+        }
+
+        function generateEmployeeReport() {
+            const productivity = data.employees.map(emp => ({...emp, productivity: Math.floor(Math.random()*100)}));
+            const container = document.getElementById('employeeProductivity');
+            container.innerHTML = '<h4>Productividad de Empleados:</h4>';
+            productivity.sort((a,b)=>b.productivity-a.productivity).forEach(emp => container.innerHTML += `<p>${emp.name} (${emp.role}): ${emp.productivity}%</p>`);
+            showNotification('Reporte de productividad generado', 'success');
+        }
+
+        function generateClientsReport() {
+            const container = document.getElementById('frequentClients');
+            container.innerHTML = '<h4>Clientes frecuentes:</h4>';
+            data.clients.slice(0,5).forEach(c => container.innerHTML += `<p>${c.name} - ${c.email}</p>`);
+            showNotification('Reporte de clientes generado', 'success');
+        }
+
+        function generateDeliveriesReport() {
+            const container = document.getElementById('pendingDeliveries');
+            container.innerHTML = '<h4>Entregas pendientes:</h4>';
+            data.deliveries.filter(d => d.status === 'programada').forEach(d => {
+                const order = data.orders.find(o => o.id === d.orderId);
+                container.innerHTML += `<p>${order ? order.description : 'Desconocido'} - ${d.deliveryDate}</p>`;
+            });
+            showNotification('Reporte de entregas generado', 'success');
+        }
+
+        // Backup & restore
+        function performBackup() {
+            try {
+                localStorage.setItem('carpinteria_backup', JSON.stringify(data));
+                showNotification('Backup realizado exitosamente', 'success');
+            } catch (e) { showNotification('Error al realizar backup', 'error'); }
+        }
+
+        function performRestore() {
+            try {
+                const b = localStorage.getItem('carpinteria_backup');
+                if (!b) { showNotification('No se encontró ningún backup', 'error'); return; }
+                data = JSON.parse(b);
+                updateDisplay();
+                showNotification('Datos restaurados desde backup', 'success');
+            } catch (e) { showNotification('Error al restaurar datos', 'error'); }
+        }
+
+        // Utilities
+        function clearForm(formType) {
+            const forms = {
+                'orders': ['orderClient','orderDate','orderStatus','orderDescription'],
+                'clients': ['clientName','clientEmail','clientPhone','clientAddress'],
+                'materials': ['materialName','materialType','materialQuantity','materialUnit'],
+                'employees': ['employeeName','employeeRole','employeeSalary','employeeStartDate'],
+                'deliveries': ['deliveryOrder','deliveryDate','deliveryAddress','deliveryStatus']
+            };
+            (forms[formType]||[]).forEach(id => { const el=document.getElementById(id); if (el) el.value=''; });
+        }
+
+        function showNotification(message,type) {
+            const n = document.getElementById('notification');
+            n.textContent = message;
+            n.className = `notification ${type}`;
+            n.classList.add('show');
+            setTimeout(()=> n.classList.remove('show'), 3000);
+        }
+
+        /******************************
+         *  EXPORT / DOWNLOAD / PDF
+         ******************************/
+
+        // Download single order as JSON
+        function downloadOrder(id) {
+            const order = data.orders.find(o => o.id === id);
+            if (!order) { showNotification('Pedido no encontrado', 'error'); return; }
+            const client = data.clients.find(c => c.id === order.clientId);
+            const pedidoCompleto = { ...order, cliente_nombre: client ? client.name : 'Cliente no encontrado' };
+            const blob = new Blob([JSON.stringify(pedidoCompleto, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `pedido_${id}.json`; a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Pedido descargado correctamente', 'success');
+        }
+
+        // Generate PDF for a single order
+        async function generateOrderPDF(id) {
+            const { jsPDF } = window.jspdf;
+            const order = data.orders.find(o => o.id === id);
+            if (!order) { showNotification('Pedido no encontrado', 'error'); return; }
+            const client = data.clients.find(c => c.id === order.clientId);
+
+            const pdf = new jsPDF();
+            // Header with simple logo rectangle (green)
+            pdf.setFillColor(0,150,80);
+            pdf.rect(10,10,30,15,'F');
+            pdf.setFontSize(18);
+            pdf.text('Reporte del Pedido', 50, 20);
+
+            pdf.setFontSize(12);
+            pdf.text(`ID Pedido: ${order.id}`, 10, 40);
+            pdf.text(`Cliente: ${client ? client.name : 'No encontrado'}`, 10, 50);
+            pdf.text(`Fecha: ${order.date}`, 10, 60);
+            pdf.text(`Estado: ${order.status}`, 10, 70);
+
+            pdf.text('Descripción:', 10, 85);
+            pdf.setFontSize(11);
+            // wrap description
+            pdf.text(order.description, 10, 95, { maxWidth: 180 });
+
+            pdf.save(`pedido_${id}.pdf`);
+            showNotification('PDF generado correctamente', 'success');
+        }
+
+        // Generate PDF with ALL orders
+        async function generateAllOrdersPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            pdf.setFillColor(0,150,80);
+            pdf.rect(10,10,30,15,'F');
+            pdf.setFontSize(20);
+            pdf.text('Reporte General de Pedidos', 50, 20);
+
+            let y = 40;
+            pdf.setFontSize(12);
+
+            data.orders.forEach(order => {
+                const client = data.clients.find(c => c.id === order.clientId);
+                pdf.text(`Pedido #${order.id} — Cliente: ${client ? client.name : 'No encontrado'}`, 10, y);
+                pdf.text(`Fecha: ${order.date} — Estado: ${order.status}`, 10, y+8);
+                pdf.text('Descripción:', 10, y+18);
+                pdf.text(order.description, 10, y+28, { maxWidth: 180 });
+
+                y += 45;
+                if (y > 260) { pdf.addPage(); y = 20; }
+            });
+
+            pdf.save('todos_los_pedidos.pdf');
+            showNotification('PDF de todos los pedidos generado', 'success');
+        }
+
+        // Generate PDF of clients
+        async function generateClientsPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            pdf.setFillColor(0,150,80);
+            pdf.rect(10,10,30,15,'F');
+            pdf.setFontSize(20);
+            pdf.text('Reporte de Clientes', 50, 20);
+
+            let y = 40;
+            pdf.setFontSize(12);
+
+            data.clients.forEach(client => {
+                pdf.text(`Cliente: ${client.name}`, 10, y);
+                pdf.text(`Tel: ${client.phone} — Email: ${client.email}`, 10, y+8);
+                pdf.text(`Dirección: ${client.address}`, 10, y+16);
+
+                const pedidos = data.orders.filter(p => p.clientId === client.id).length;
+                pdf.text(`Pedidos realizados: ${pedidos}`, 10, y+26);
+
+                y += 38;
+                if (y > 260) { pdf.addPage(); y = 20; }
+            });
+
+            pdf.save('clientes.pdf');
+            showNotification('PDF de clientes generado', 'success');
+        }
+
+        // Export everything to Excel (uses ExcelJS + FileSaver)
+        async function exportAllToExcel() {
+            try {
+                const workbook = new ExcelJS.Workbook();
+
+                // Pedidos sheet
+                const sheet1 = workbook.addWorksheet('Pedidos');
+                sheet1.addRow(['ID','Cliente','Fecha','Estado','Descripción']);
+                data.orders.forEach(o => {
+                    const cliente = data.clients.find(c => c.id === o.clientId);
+                    sheet1.addRow([o.id, cliente ? cliente.name : 'N/A', o.date, o.status, o.description]);
+                });
+
+                // Clientes sheet
+                const sheet2 = workbook.addWorksheet('Clientes');
+                sheet2.addRow(['ID','Nombre','Correo','Teléfono','Dirección']);
+                data.clients.forEach(c => sheet2.addRow([c.id, c.name, c.email, c.phone, c.address]));
+
+                // Entregas sheet
+                const sheet3 = workbook.addWorksheet('Entregas');
+                sheet3.addRow(['ID','Pedido ID','Fecha Entrega','Dirección','Estado']);
+                (data.deliveries||[]).forEach(e => sheet3.addRow([e.id, e.orderId, e.deliveryDate, e.address, e.status]));
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), 'reporte_completo.xlsx');
+                showNotification('Excel generado correctamente', 'success');
+            } catch (err) {
+                console.error(err);
+                showNotification('Error al generar Excel', 'error');
+            }
+        }
+
+        // Download all deliveries as JSON
+        function downloadDeliveries() {
+            if (!data.deliveries || data.deliveries.length === 0) { showNotification('No hay entregas para exportar', 'error'); return; }
+            const blob = new Blob([JSON.stringify(data.deliveries, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'entregas.json'; a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Entregas descargadas correctamente', 'success');
+        }
+
+        // Small helper to initialize UI immediately for demo
+        // (in production you may want to wait to login)
+        // Comment out automatic load if you prefer to require login.
+        // loadInitialData(); // <-- kept commented so login works as before
+
+    </script>
+
+    <!-- External libraries (for PDF and Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<!-- CHAT IA GLOBAL -->
+<link rel="stylesheet" href="bot.css">
+<div id="chat-floating-root"></div>
+<script src="bot.js"></script>
+
+</body>
+</html>

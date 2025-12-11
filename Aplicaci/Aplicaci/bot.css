@@ -1,0 +1,10 @@
+
+#chatButton{position:fixed;bottom:25px;right:25px;background:#3498db;color:#fff;width:60px;height:60px;border-radius:50%;border:none;font-size:26px;cursor:pointer;z-index:99999;}
+#chatWindow{position:fixed;bottom:100px;right:25px;width:350px;height:480px;background:#fff;border-radius:12px;display:none;flex-direction:column;box-shadow:0 4px 15px rgba(0,0,0,.3);z-index:99999;}
+#chatHeader{background:#2c3e50;color:#fff;padding:10px;text-align:center;font-weight:bold;}
+#chatMessages{flex:1;padding:10px;overflow-y:auto;background:#f5f5f5;}
+.user-msg{background:#d1ecf1;margin:6px;padding:6px;border-radius:6px;align-self:flex-end;}
+.ai-msg{background:#e2e3e5;margin:6px;padding:6px;border-radius:6px;align-self:flex-start;}
+#chatInputArea{display:flex;border-top:1px solid #ddd;}
+#chatInput{flex:1;padding:10px;border:none;outline:none;}
+#sendBtn{background:#3498db;color:#fff;border:none;padding:10px 15px;cursor:pointer;}
